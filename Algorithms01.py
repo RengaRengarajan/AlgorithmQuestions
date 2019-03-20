@@ -1,4 +1,5 @@
 import sys
+import traceback
 from random import *
 from MyBinaryTree import BinaryTree as BT
 from LinkedList import LinkedList as LS
@@ -554,8 +555,117 @@ def cci_2_2(k: int):
 
     return ls.get_kth_from_end(k)
 
-# ---------------------------------------------------------------------------------------------------------------
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
+
+def reverse_int(k: int):
+    # reverse an integer which could be -ve, zero or positive
+    if k < 0:
+        sign = -1
+        k = -k
+    else:
+        sign = +1
+
+    rev = 0
+    while k > 0:
+        rev = (rev * 10) + (k % 10)
+        k = k // 10
+
+    return sign * rev
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+def prob_dm_1():
+    # Input
+    ##{
+    #   "Opt":"10",
+    #   "Columns":"2",
+    #   "Cells":"5",
+    #   "Key" : "Key 2",
+    #   "Parameters":[
+    #      {
+    #         "Key1":"Value 1"
+    #      },
+    #      {
+    #         "Key 2":"Value 1, Value 2, Value 3, Value 4, Value 5, Value 6, Value 7, Value 8, Value 9, Value 10,Value 11, Value 12, Value 13, Value 14, Value 15, Value 16, Value 17, Value 18, Value 19, Value 20,"
+    #      }
+    #]
+    #}
+
+
+    # Use Opt value as the increment counter. i.e. here take every 10th value.
+    # Use columns as number of values that need to be extracted. Since columns = 2, you take Value 1 and Value 11
+    # Since Key = Key 2, Use data from "Key 2"
+
+
+    #Expected output
+    #"Key 2a": "Value 1, Value 11",
+    #"Key 2b": "Value 2, Value 12"
+
+    # My Actual Output
+    # {'Key 2a': 'Value 1,Value 11', 'Key 2b': ' Value 2, Value 12', 'Key 2c': ' Value 3, Value 13',
+    # 'Key 2d': ' Value 4, Value 14', 'Key 2e': ' Value 5, Value 15', 'Key 2f': ' Value 6, Value 16',
+    # 'Key 2g': ' Value 7, Value 17', 'Key 2h': ' Value 8, Value 18', 'Key 2i': ' Value 9, Value 19',
+    # 'Key 2j': ' Value 10, Value 20'}
+
+    d = {
+        "Opt": "10",
+        "Columns": "2",
+        "Cells": "5",
+        "Key": "Key 2",
+        "Parameters": [
+            {
+                "Key1": "Value 1"
+            },
+            {
+                "Key 2": "Value 1, Value 2, Value 3, Value 4, Value 5, Value 6, Value 7, Value 8, Value 9, "
+                         "Value 10,Value 11, Value 12, Value 13, Value 14, Value 15, Value 16, Value 17, "
+                         "Value 18, Value 19, Value 20,"
+            }
+        ]
+    }
+
+    try:
+        inc_counter = int(d.get("Opt"))
+        cols = int(d.get("Columns"))
+        key = d.get("Key")
+        params = d.get("Parameters")
+    except Exception as e:
+        print("Exception %s" % e)
+        traceback.print_exc()
+        return None
+
+    if inc_counter is None or cols is None or key is None or params is None or type(params) is not list:
+        return None
+
+    for t in params:
+        if type(t) is not dict:
+            raise ValueError("One of the elements in Parameters is not a dictionary ")
+        if key in t:
+            # key is found
+            values = t.get(key)
+            # values is a comma separated strings
+            val_list = values.split(',')
+            num_vals = len(val_list)
+            out_d = dict()
+            num_output_keys = inc_counter
+            for i in range (num_output_keys):
+                suffix = ord('a') + i
+                out_key = key + chr(suffix)
+                num_values_for_out_key = num_vals // inc_counter
+                out_val_list = []
+                for j in range(num_values_for_out_key):
+                    out_val_list.append(val_list[i + (j * inc_counter)])
+
+                # now insrt the key value pair
+                out_d[out_key] = ','.join(out_val_list)
+
+            return out_d
+
+    return None
+
+# ---------------------------------------------------------------------------------------------------------------
 
 # ------------###
 #     main    ###
