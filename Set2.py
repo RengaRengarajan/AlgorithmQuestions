@@ -239,3 +239,40 @@ def test_median_two_arrays():
         print("ALL TESTS PASSED")
     else:
         print("%d tests FAILED" % err_count)
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             COUNT NUMBER OF NEIGHBORS
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+def count_neighbors(nums: [list]):
+    """
+    Count neighbors for every element (all possible 8 neighbors)
+    If element =1 and neighbors>3 then that element should become 1 else 0
+    If elenent=0 and neighbors>2 then tht should become 1 else 0
+    :param nums:
+    :return:
+    """
+    num_rows = len(nums)
+    num_cols = len(nums[0])
+
+    result = [[0 for _ in range(num_cols)] for _ in range(num_rows)]
+
+    for row_num in range(num_rows):
+        for col_num in range(num_cols):
+            num_neighbors = 8
+            if row_num == 0 or row_num == num_rows - 1:
+                num_neighbors -= 3
+            if col_num == 0 or col_num == num_cols - 1:
+                if row_num == 0 or row_num == num_rows - 1:
+                    num_neighbors -= 2
+                else:
+                    num_neighbors -= 3
+            # Now check if the cell has 0 or 1 and update
+            if nums[row_num][col_num] == 1:
+                result[row_num][col_num] = 1 if num_neighbors > 3 else 0
+            else:
+                result[row_num][col_num] = 1 if num_neighbors > 2 else 0
+
+    return result
+
