@@ -75,9 +75,18 @@ def median(sorted_arr: list, start_inx: int, end_inx: int):
         return sorted_arr[start_inx + mid_point]
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             M E D I A N   O F   T W O   S O R T E D   A R R A Y S
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 
-def median_two_arrays(nums1: list, nums2: list):
+def median_two_arrays_linear(nums1: list, nums2: list):
+    """
+    There are two sorted arrays nums1 and nums2 of size m and n respectively.
+    Find the median of the two sorted arrays. The overall run time complexity should be O(log (m+n)).
+    :param nums1:
+    :param nums2:
+    :return:
+    """
     if nums1 is None or nums2 is None:
         return None
     len1 = len(nums1)
@@ -148,23 +157,85 @@ def median_two_arrays(nums1: list, nums2: list):
             return median(new_list, 0, len(new_list))
 
 
-def test_median_two_arrays():
-    test_cases = [([1, 3], [2], 2.0),
-                  ([1, 2], [3,4], 2.5),
-                  ([10, 20, 30], [1, 2, 3], 6.5),
-                  ([10, 20, 30], [2, 5, 12], 11.0),
-                  ([10, 20, 30], [2, 5, 32], 15.0),
-                  ([10],[6],8.0),
-                  ([20], [], 20.0),
-                  ([], [12], 12.0),
-                  ([12,24,36], [13, 14, 25, 31], 24.0),
-                  ([12,24,36], [13, 14, 25, 39], 24.0),
-                  ([10, 20, 30, 35], [40, 50, 60], 35.0)
-                 ]
+def median_two_arrays_binary(nums1: list, nums2: list):
+    """
+    There are two sorted arrays nums1 and nums2 of size m and n respectively.
+    Find the median of the two sorted arrays. The overall run time complexity should be O(log (m+n)).
+    :param nums1:
+    :param nums2:
+    :return:
+    """
+    if nums1 is None or nums2 is None or (len(nums1) == 0 and len(nums2) == 0):
+        return None
+    if len(nums1) == 0:
+        return median(nums2, 0, len(nums2))
+    if len(nums2) == 0:
+        return median(nums1, 0, len(nums1))
 
+    if len(nums1) < len(nums2):
+        small_ary = nums1
+        big_ary = nums2
+    else:
+        small_ary = nums2
+        big_ary = nums1
+    total_num = len(nums1) + len(nums2)
+
+    s1 = 0
+    e1 = len(small_ary)
+
+    while True:
+        # now partition arrays - n1 on small_ary and n2 on big_ary such that n1 + n2 is half the total
+        left_n1 = (s1 + e1) // 2
+        left_n2 = ((total_num + 1) // 2) - left_n1
+        right_n1 = len(small_ary) - left_n1
+        right_n2 = len(big_ary) - left_n2
+        left_small = -sys.maxsize if left_n1 == 0 else small_ary[left_n1 - 1]
+        left_big = -sys.maxsize if left_n2 == 0 else big_ary[left_n2 - 1]
+        right_small = +sys.maxsize if right_n1 == 0 else small_ary[left_n1]
+        right_big = +sys.maxsize if right_n2 == 0 else big_ary[left_n2]
+
+        if left_small <= right_big and left_big <= right_small:
+            # we found the right split
+            if (total_num % 2) == 0:
+                return (max(left_small, left_big) + min(right_small, right_big)) / 2
+            else:
+                return max(left_small, left_big)
+        elif left_small > right_big:
+            # we need to move left on the small array
+            e1 = left_n1 - 1
+        else:
+            # we need to move right on the small array
+            s1 = left_n1 + 1
+
+
+
+def test_median_two_arrays():
+    test_cases = [([1, 3],           [2],              2.0),
+                  ([1, 2],           [3, 4],           2.5),
+                  ([10, 20, 30],     [1, 2, 3],        6.5),
+                  ([10, 20, 30],     [2, 5, 12],       11.0),
+                  ([10, 20, 30],     [2, 5, 32],       15.0),
+                  ([10],             [6],              8.0),
+                  ([20],             [],               20.0),
+                  ([],               [12],             12.0),
+                  ([12, 24, 36],     [13, 14, 25, 31], 24.0),
+                  ([12, 24, 36],     [13, 14, 25, 39], 24.0),
+                  ([10, 20, 30, 35], [40, 50, 60],     35.0)
+                  ]
+
+    err_count = 0
     for t in test_cases:
-        m = median_two_arrays(t[0], t[1])
-        if m != t[2]:
-            print("a1 = %r. a2 = %r. Median = %f. Expected Median = %f. ERROR!" % (t[0], t[1], m, t[2]))
+        m = median_two_arrays_binary(t[0], t[1])
+        if m is None:
+            err_count += 1
+            print("::::ERROR:::: a1 = %r. a2 = %r. Median = None. Expected Median = %f" % (t[0], t[1], t[2]))
+        elif m != t[2]:
+            err_count += 1
+            print("::::ERROR:::: a1 = %r. a2 = %r. Median = %f. Expected Median = %f" % (t[0], t[1], m, t[2]))
         else:
             print("a1 = %r. a2 = %r. Median = %f." % (t[0], t[1], m))
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
