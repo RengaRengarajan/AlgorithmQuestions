@@ -1,5 +1,5 @@
 import sys
-
+from typing import List
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
@@ -245,6 +245,19 @@ def test_median_two_arrays():
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 
+def get_neighbors(row_num: int, col_num: int, num_rows: int, num_cols: int):
+    result = []
+    for row_delta in [-1, 0, 1]:
+        new_row_num = row_num + row_delta
+        if 0 <= new_row_num < num_rows:
+            for col_delta in [-1, 0, 1]:
+                new_col_num = col_num + col_delta
+                if 0 <= new_col_num < num_cols:
+                    if not (row_delta == 0 and col_delta == 0):
+                        result.append((new_row_num, new_col_num))
+    return result
+
+
 def count_neighbors(nums: [list]):
     """
     Count neighbors for every element (all possible 8 neighbors)
@@ -276,3 +289,54 @@ def count_neighbors(nums: [list]):
 
     return result
 
+
+def count_neighbors_2(nums: [list]):
+    """
+    Count neighbors for every element (all possible 8 neighbors)
+    If element =1 and non-zero neighbors>3 then that element should become 1 else 0
+    If elenent=0 and non-zero neighbors>2 then tht should become 1 else 0
+    :param nums:
+    :return:
+    """
+    num_rows = len(nums)
+    num_cols = len(nums[0])
+
+    result = [[0 for _ in range(num_cols)] for _ in range(num_rows)]
+
+    for row_num in range(num_rows):
+        for col_num in range(num_cols):
+            neighbors = get_neighbors(row_num, col_num, num_rows, num_cols)
+            non_zero_count = 0
+            for n in neighbors:
+                if nums[n[0]][n[1]] == 1:
+                    non_zero_count += 1
+
+            # Now check if the cell has 0 or 1 and update
+            if nums[row_num][col_num] == 1:
+                result[row_num][col_num] = 1 if non_zero_count > 3 else 0
+            else:
+                result[row_num][col_num] = 1 if non_zero_count > 2 else 0
+
+    return result
+
+def test_count_neighbors_2():
+    nums = [[1, 0, 1, 1, 0, 0], [0, 1, 1, 0, 0, 1], [1, 0, 0, 0, 1, 0], [0, 0, 0, 1, 1, 0]]
+    result = count_neighbors_2(nums)
+    print(result)
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             128. Longest Consecutive Sequence
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+def longestConsecutive(nums: List[int]) -> int:
+    """
+    Given an unsorted array of integers, find the length of the longest consecutive elements sequence.
+    Your algorithm should run in O(n) complexity.
+    Example:
+        Input: [100, 4, 200, 1, 3, 2]
+        Output: 4
+        Explanation: The longest consecutive elements sequence is [1, 2, 3, 4]. Therefore its length is 4.
+    :param nums:
+    :return:
+    """
