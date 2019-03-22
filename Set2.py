@@ -325,6 +325,72 @@ def test_count_neighbors_2():
     print(result)
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             1.5   O N E   A W A Y
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+def one_away (s1: str, s2: str):
+    """
+    Modified version of problem 1.5 in Cracking Coding Interviews
+    Two strings s1 and s2 are given. This function must check if we can apply exactly one edit to s1 and
+    transform it into s2. The edits allowed are insert a character, remove a character, replace a character
+    or swap two adjacent characters. The function must return the following values:
+    "equal" - s1 and s2 are already equal
+    "not possible" - can't change s1 to s2 with only one edit
+    "replace c1 c2" - replace char c1 with c2
+    "insert c" - insert char c
+    "delete c" - delete char c
+    "swap c1 c2" - swap two adjacent characters c1 and c2
+    EXAMPLES:
+    ple, pale -> insert a
+    farm, far -> delete m
+    abcd, acbd -> swap b c
+    pale, kale -> replace p k
+    abcd, abcd -> equal
+    abcd, acbe -> not possible
+    :param s1:
+    :param s2:
+    :return:
+    """
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             R I G H T   T R I A N G L E
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+def right_triangle (xa:int, ya: int, xb: int, yb: int):
+    """
+    ABC is a right angled triangle with angle ABC = 90 degrees
+    The coordinates of A, B and C are (xa, ya), (xb, yb) and (xc, yc)
+    All coordinates are integers
+    The points A, B and C are clockwise
+    Given the coordinates of A and B, find the coordinates of C for the shortest length of BC possible
+    EXAMPLE:
+        A = (-2, 3) B = (2, 1) Then C = (1, -1)
+        A = (-6, 1) B = (4, 1) Then C = (4, 0)
+    :param xa:
+    :param ya:
+    :param yb:
+    :return: (xc, yc)
+    """
+
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             D R O P   M I N I M U M   F O R   A S C E N D I N G
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+def drop_to_get_ascending (nums: list):
+    """
+    You are given an array containing integers
+    Each array element can be between -100 to 100, both inclusive
+    The array could be as big as 250,000 elements
+    Find the minimum number of array elements to be dropped so that the remaining elements are in ascending order
+    EXAMPLE:
+        [45, 30, 32, 46, 47] -> return 1 as we can drop just 45
+        [45, 30, 32, 46, 47, 33, 48, 49] -> return 2 as we can drop just 45 and 33
+    :param nums:
+    :return: n
+    """
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #             128. Longest Consecutive Sequence
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
@@ -340,3 +406,84 @@ def longestConsecutive(nums: List[int]) -> int:
     :param nums:
     :return:
     """
+
+    seq_start = dict()
+    seq_end = dict()
+    already_seen = dict()
+
+    for n in nums:
+        # skip if already seen
+        if n in already_seen:
+            continue
+        else:
+            already_seen[n] = 1
+
+        # check if n+1 is in seq start
+        if (n + 1) in seq_start:
+            # add n to the beginning of this sequence
+            curr_end = seq_start.pop(n + 1)
+            seq_end.pop(curr_end)
+
+            seq_start[n] = curr_end
+            seq_end[curr_end] = n
+
+            # now n has been added to the beginning of a sequence. Check if this sequence has to be merged
+            # to the end of another sequence
+            if (n - 1) in seq_end:
+                # append current sequence to the seq found
+                merge_start = seq_end.pop(n - 1)
+                seq_start[merge_start] = curr_end
+                seq_end[curr_end] = merge_start
+        elif (n - 1) in seq_end:
+            # add n to the end of this sequence
+            curr_start = seq_end.pop(n - 1)
+            seq_start.pop(curr_start)
+
+            seq_end[n] = curr_start
+            seq_start[curr_start] = n
+
+            # now n has been added to the end of a sequence. Check if this sequence has to be merged
+            # to the beginning of another sequence
+            if (n + 1) in seq_start:
+                # prepend current sequence to the seq found
+                merge_end = seq_start.pop(n + 1)
+                seq_end[merge_end] = curr_start
+                seq_start[curr_start] = merge_end
+
+        else:
+            # insert this into both start and end seq
+            seq_start[n] = n
+            seq_end[n] = n
+
+    # now locate the longest sequence
+    longest_seq_len = 0
+    for k, v in seq_start.items():
+        seq_len = v - k + 1
+        if seq_len > longest_seq_len:
+            longest_seq_len = seq_len
+
+    return longest_seq_len
+
+
+def test_longestConsecutive():
+    test_cases = \
+        [([100, 4, 200, 1, 3, 2], 4),
+         ([2, 1, 100, 200, 4, 5, 300, 3], 5),
+         ([5, 4, 3, 2, 100, 1, 200, 0], 6),
+         ([10, 14, 12, 13, 11, 100, 16, 17, 300, 19, 20, 18, 15], 11),
+         ([1, 2, 3, 2, 3, 4], 4),
+         ([-3, 2, 8, 5, 1, 7, -8, 2, -8, -4, -1, 6, -6, 9, 6, 0, -7, 4, 5, -4, 8, 2, 0, -2, -6, 9, -4, -1], 7)]
+
+    err_count = 0
+    for t in test_cases:
+        m = longestConsecutive(t[0])
+        if m != t[1]:
+            err_count += 1
+            print("::::ERROR:::: nums = %r. Returned Length = %d. Expected Length = %d" % (t[0], m, t[1]))
+        else:
+            print("nums = %r. Seq length = %d." % (t[0], m))
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
