@@ -391,7 +391,7 @@ def drop_to_get_ascending (nums: list):
     """
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-#             128. Longest Consecutive Sequence
+#             Leetcode 128. Longest Consecutive Sequence
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
 
@@ -482,6 +482,136 @@ def test_longestConsecutive():
             print("::::ERROR:::: nums = %r. Returned Length = %d. Expected Length = %d" % (t[0], m, t[1]))
         else:
             print("nums = %r. Seq length = %d." % (t[0], m))
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             Leetcode 30. Substring with Concatenation of All Words
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+def findSubstring(s: str, words: List[str]) -> List[int]:
+    """
+    You are given a string, s, and a list of words, words, that are all of the same length.
+    Find all starting indices of substring(s) in s that is a concatenation of each word in words exactly once
+    and without any intervening characters.
+
+    Example 1:
+        Input:
+          s = "barfoothefoobarman",
+          words = ["foo","bar"]
+        Output: [0,9]
+        Explanation: Substrings starting at index 0 and 9 are "barfoor" and "foobar" respectively.
+        The output order does not matter, returning [9,0] is fine too.
+
+    Example 2:
+        Input:
+          s = "wordgoodgoodgoodbestword",
+          words = ["word","good","best","word"]
+        Output: []
+    :param self:
+    :param s:
+    :param words:
+    :return:
+    """
+
+    if s is None or words is None:
+        return []
+
+    s_len = len(s)
+    num_words = len(words)
+
+    if s_len == 0 or num_words == 0:
+        return []
+
+    # all words are assumed to be of same length. No specific validation
+    word_length = len(words[0])
+    total_word_length = num_words * word_length
+
+    # if length of the string is less than total word length, then there won't be any match
+    if s_len < total_word_length:
+        return []
+
+    # Now count the number of occurrences of each character in s. Assume s has ASCII chars
+    # this will help in finding no match quickly, if the count for any char in s is less that its count in words
+    s_char_count = [0] * 128
+    for c in s:
+        s_char_count[ord(c)] += 1
+
+    # Now process each word
+    word_char_count = [0] * 128
+    words_dict = dict()
+    words_first_char = dict()
+    for w in words:
+        # note that words might contain duplicates
+        words_dict[w] = words_dict.get(w,0) + 1
+        first_char = w[0]
+        words_first_char[first_char] = words_first_char.get(first_char, 0) + 1
+        for c in w:
+            word_char_count[ord(c)] += 1
+
+    # now check if for any char its count in s is less than words
+    for i in range(128):
+        if s_char_count[i] < word_char_count[i]:
+            return []
+
+    # the best way to check if concatenated words is a sub-string is to scan the given string
+    # we need to start from the beginning of the string and stop at total_word_length from the end
+
+    result = []
+
+    for i in range(s_len - total_word_length + 1):
+        if s[i] in words_first_char:
+            # there is a chance. now check if all the words are found
+            # clear the counts in words_dict
+            words_seen_count = dict()
+            for w in words_dict:
+                words_seen_count[w] = 0
+            num_words_to_find = num_words
+            for n in range(num_words):
+                start_pos = i + (n * word_length)
+                end_pos = start_pos + word_length
+                sub_str = s[start_pos: end_pos]
+                if sub_str not in words_dict:
+                    # we can abandon this starting position i
+                    continue
+
+                # now increment the count of this word in words_seen_count
+
+                curr_count = words_seen_count[sub_str]
+                if curr_count >= words_dict[sub_str]:
+                    # we have already seen this word enough number of times
+                    continue
+                words_seen_count[sub_str] = curr_count + 1
+
+                num_words_to_find -= 1
+
+            # Now check if all the words have been found at this position of i. Add it to result
+            if num_words_to_find == 0:
+                result.append(i)
+
+    return result
+
+
+def test_findSubstring():
+    test_cases = \
+        [("barfoothefoobarman", ["foo","bar"], [0, 9]),
+         ("wordgoodgoodgoodbestword", ["word","good","best","word"], []),
+         ("abcd", ['ab', 'cd', 'ab'], []),
+         ("bcdcdeabcxyabxabccdebcdy", ['abc', 'bcd', 'cde'], [0, 14]),
+         ("wordgoodgoodgoodbestword", ["word","good","best","good"], [8])]
+
+    err_count = 0
+    for t in test_cases:
+        m = findSubstring(t[0], t[1])
+        if m != t[2]:
+            err_count += 1
+            print("::::ERROR:::: s = %s. words = %r. Returned = %r. Expected = %r" % (t[0], t[1], m, t[2]))
+        else:
+            print("s = %s. words = %r. Returned = %r" % (t[0], t[1], m))
 
     if err_count == 0:
         print("ALL TESTS PASSED")
