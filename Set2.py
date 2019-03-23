@@ -328,6 +328,7 @@ def test_count_neighbors_2():
 #             1.5   O N E   A W A Y
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
+
 def one_away (s1: str, s2: str):
     """
     Modified version of problem 1.5 in Cracking Coding Interviews
@@ -351,6 +352,99 @@ def one_away (s1: str, s2: str):
     :param s2:
     :return:
     """
+
+    len_s1 = len(s1)
+    len_s2 = len(s2)
+    if abs(len_s1 - len_s2) > 1:
+        return "not possible"
+
+    if s1 == s2:
+        return "equal"
+
+    num_diffs = 0
+    result = ''
+    if len_s1 == len_s2:
+        # onlly REPLACE and SWAP are applicable
+        i = 0
+        while i < len_s1:
+            if s1[i] == s2[i]:
+                i += 1
+            elif (i != len_s1 - 1) and s1[i + 1] == s2[i] and s1[i] == s2[i + 1]:
+                # swap
+                num_diffs += 1
+                result = "swap %c %c" % (s1[i], s1[i + 1])
+                i += 2
+            else:
+                num_diffs += 1
+                result = "replace %c %c" % (s1[i], s2[i])
+                i += 1
+    elif len_s1 > len_s2:
+        # only delete is possible
+        i = 0
+        while i < len_s2:
+            if s2[i] != s1[i]:
+                num_diffs += 1
+                if num_diffs > 1:
+                    break
+                result = "delete %c" % s1[i]
+                s1 = s1[0:i] + s1[i+1:]     # delete the char
+            i += 1
+        if num_diffs == 0:
+            num_diffs = 1
+            result = "delete %c" % s1[-1]
+
+    else:
+        # only INSERT applicable
+        i = 0
+        while i < len_s1:
+            if s1[i] != s2[i]:
+                num_diffs += 1
+                s1 = s1[0:i] + s2[i] + s1[i:]
+                result = "insert %c" % s2[i]
+            i += 1
+        if num_diffs == 0:
+            num_diffs = 1
+            result = "insert %c" % s2[-1]
+
+    if num_diffs > 1:
+        return "not possible"
+    else:
+        return result
+
+
+def test_one_away():
+    test_cases = [("pale", "pale", "equal"),
+                  ("ale", "pale", "insert p"),
+                  ("ple", "pale", "insert a"),
+                  ("pal", "pale", "insert e"),
+                  ("fit", "first", "not possible"),
+                  ("find", "kind", "replace f k"),
+                  ("cord", "card", "replace o a"),
+                  ("data", "date", "replace a e"),
+                  ("ofol", "fool", "swap o f"),
+                  ("form", "from", "swap o r"),
+                  ("firts", "first", "swap t s"),
+                  ("forn", "from", "not possible"),
+                  ("away", "way", "delete a"),
+                  ("runs", "run", "delete s"),
+                  ("first", "fist", "delete r"),
+                  ("uneven", "even", "not possible"),
+                  ("abcde", "cbde", "not possible")]
+
+    err_count = 0
+    for t in test_cases:
+        m = one_away(t[0], t[1])
+        if m != t[2]:
+            err_count += 1
+            print("::::ERROR:::: s1 = %s. s2 = %r. Returned = %s. Expected = %s" % (t[0], t[1], m, t[2]))
+        else:
+            print("s1 = %s. s2 = %r. Returned = %r" % (t[0], t[1], m))
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
+
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #             R I G H T   T R I A N G L E
