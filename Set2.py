@@ -450,7 +450,7 @@ def test_one_away():
 #             R I G H T   T R I A N G L E
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-def right_triangle (xa:int, ya: int, xb: int, yb: int):
+def right_triangle(xa:int, ya: int, xb: int, yb: int):
     """
     ABC is a right angled triangle with angle ABC = 90 degrees
     The coordinates of A, B and C are (xa, ya), (xb, yb) and (xc, yc)
@@ -462,9 +462,67 @@ def right_triangle (xa:int, ya: int, xb: int, yb: int):
         A = (-6, 1) B = (4, 1) Then C = (4, 0)
     :param xa:
     :param ya:
+    :param xb:
     :param yb:
     :return: (xc, yc)
     """
+
+    if xb == xa:
+        # line 1 is vertical and so line 2 is horizontal
+        slope_2 = 0
+    elif yb == ya:
+        # line 1 is horizontal, so line 2 is vertical
+        slope_2 = sys.maxsize
+    else:
+        slope_1 = (yb - ya) / (xb - xa)
+        slope_2 = -1 / slope_1
+
+    # second line passes through B
+    # y = mx + c
+    c = yb - (slope_2 * xb)
+    # equation of second line = y = slope_2 * x + c
+    # find integer x, y
+
+    # from point B, when we make a 90 deg right turn, determine if x will increase or decrease
+    # if B is above A, right turn will increase x. If B is below A, it will decrease
+    # if B and A are horizontal, we need to increment/decrement y depending on xb < xa or xb > xa
+    if ya == yb:
+        # line 1 is horizontal and line 2 is vertical. Line 2 has equation x = xb
+        # if xb > xa then decrease y else increase y
+        inc = -1 if xb > xa else 1
+        x = xb
+        y = yb + inc
+        return (x, y,)
+    else:
+        # line 1 is slanting or vertical. If B is above A, right turn will increase x. If B is below A, it will decrease
+        inc = 1 if yb > ya else -1
+        begx = xb + inc
+        endx = 51 * inc
+        for x in range(begx, endx, inc):
+            y = slope_2 * x + c
+            if int(y) == y:
+                return (x, y,)
+
+
+def test_right_triangle():
+    test_cases = [(-2, 3, 2, 1, (1, -1)),
+                  (-6, 1, 4, 1, (4, 0))]
+
+    err_count = 0
+    for t in test_cases:
+        m = right_triangle(t[0], t[1], t[2], t[3])
+        if m != t[4]:
+            err_count += 1
+            print("::::ERROR:::: xa = %d. ya = %d. xb = %d. yb = %d. Returned = %r. Expected = %r" %
+                  (t[0], t[1], t[2], t[3], m, t[4]))
+        else:
+            print("xa = %d. ya = %d. xb = %d. yb = %d. Returned = %r" %
+                  (t[0], t[1], t[2], t[3], m))
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
