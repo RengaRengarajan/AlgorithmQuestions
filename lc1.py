@@ -85,7 +85,7 @@ def test_longestPalindrome():
           "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")]
 
     err_count = 0
-    start_time = time.time()
+    start_time = time.clock()
     for t in test_cases:
         m = longestPalindrome(t[0])
         if m not in t[1]:
@@ -98,7 +98,7 @@ def test_longestPalindrome():
         print("ALL TESTS PASSED")
     else:
         print("%d tests FAILED" % err_count)
-    print("Elapsed Time = %.6f millisecs" % (1000 * (time.time() - start_time)))
+    print("Elapsed Time = %.6f millisecs" % (1000 * (time.clock() - start_time)))
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #             Leetcode
