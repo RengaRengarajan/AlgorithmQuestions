@@ -29,8 +29,6 @@ def longestPalindrome(s: str) -> str:
 
     if s is None or len(s) == 0:
         return ""
-    if len(s) == 1:
-        return s
 
     # for each character, note down the positions
     char_positions = dict()
@@ -98,10 +96,72 @@ def test_longestPalindrome():
         print("ALL TESTS PASSED")
     else:
         print("%d tests FAILED" % err_count)
-    print("Elapsed Time = %.6f millisecs" % (1000 * (time.clock() - start_time)))
+    end_time = time.clock()
+    print("Elapsed Time = %.6f millisecs" % (1000 * (end_time - start_time)))
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#             Leetcode 214. Shortest Palindrome -- Hard
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+def shortestPalindrome(s: str) -> str:
+    """
+    Given a string s, you are allowed to convert it to a palindrome by adding characters in front of it.
+    Find and return the shortest palindrome you can find by performing this transformation.
+    Example 1:
+        Input: "aacecaaa"
+        Output: "aaacecaaa"
+    Example 2:
+        Input: "abcd"
+        Output: "dcbabcd"
+    :param s:
+    :return:
+    """
+
+    if s is None or len(s) == 0:
+        return ""
+    rev_s = s[::-1]
+    if s == rev_s:
+        # it's already a palindrome
+        return s
+
+    for i in range(len(rev_s)):
+        new_str = rev_s[0:i+1] + s
+        if new_str == new_str[::-1]:
+            return new_str
+
+    return ""
+
+def test_shortestPalindrome():
+    test_cases = \
+        [("aacecaaa", "aaacecaaa"),
+         ("abcd", "dcbabcd"),
+         ("aa", "aa"),
+         ("a", "a"),
+         ("ac", "cac"),
+         ("axxb", "bxxaxxb"),
+         ("", ""),
+         ("abcdefghijklmnopqrstuvwxyz", "zyxwvutsrqponmlkjihgfedcbabcdefghijklmnopqrstuvwxyz"),
+         ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaz",
+          "zaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaz")]
+
+    err_count = 0
+    start_time = time.clock()
+    for t in test_cases:
+        m = shortestPalindrome(t[0])
+        if m != t[1]:
+            err_count += 1
+            print("::::ERROR:::: s = %s. Returned = %s. Expected = %s" % (t[0], m, t[1]))
+        else:
+            print("s = %s. Returned = %s" % (t[0], m))
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
+    end_time = time.clock()
+    print("Elapsed Time = %.6f millisecs" % (1000 * (end_time - start_time)))
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #             Leetcode
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-
