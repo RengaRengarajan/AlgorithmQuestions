@@ -530,6 +530,159 @@ def test_right_triangle():
 #             D R O P   M I N I M U M   F O R   A S C E N D I N G
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
+
+def process_two_sequences(curr_seq: list, next_seq: list):
+    # process two consecutive sequences. Note that both lists are sorted
+    # There are 6 possible scenarios
+    """
+    1) next sequence is completely on the left of curr sequence
+                        ------C-------
+      -----N-------
+
+    2) next sequence start is left of curr, but its end is in the middle of curr
+                        ------C-------
+                -----N-------
+
+    3) next sequence start and end are in the middle of curr
+                    --------------C-------
+                        -----N-------
+
+    4) next sequence start is in the middle of curr, but its end is right of curr
+                    --------------C-------
+                                   -----N-------
+
+    5) next sequence is completely on the right of curr
+                    --------------C-------
+                                             -----N-------
+
+    6) next sequence completely spans curr sequence (i.e., curr sequence is in the middle of next seq)
+                        -----C-------
+                    -----------N----------
+
+    """
+
+    #   The first 3 cases are denoted by next_end <= curr_end. Correspondingly, the last 3 cases
+    #   are denoted by next_end > curr_end
+
+    # print("process_two_sequences: curr_seq = %r. next_seq = %r" % (curr_seq, next_seq))
+    curr_seq_len = len(curr_seq)
+    next_seq_len = len(next_seq)
+    drop_size = 0
+    return_seq = None
+
+    if next_seq[-1] <= curr_seq[-1]:
+        # cases 1 thru 3
+        if next_seq[-1] <= curr_seq[0]:
+            # -------------------------------------------------------------------
+            # case 1 - next sequence is completely on the left of curr sequence
+            # -------------------------------------------------------------------
+            # check the lengths of curr and next seq. Keep the bigger one
+            if next_seq_len > curr_seq_len:
+                return_seq = next_seq
+                drop_size += curr_seq_len
+            else:
+                return_seq = curr_seq
+                drop_size += next_seq_len
+        elif next_seq[0] < curr_seq[0]:
+            # -------------------------------------------------------------------
+            # case 2 - next sequence start is left of curr, but its end is in the middle of curr
+            # -------------------------------------------------------------------
+            # The best we can do is to pick the larger sequence
+            if next_seq_len > curr_seq_len:
+                return_seq = next_seq
+                drop_size += curr_seq_len
+            else:
+                return_seq = curr_seq
+                drop_size += next_seq_len
+        else:
+            # -------------------------------------------------------------------
+            # case 3 - next sequence start and end are in the middle of curr
+            # -------------------------------------------------------------------
+            # So the next seq is entirely within current sequence.
+            # Count the number of elements in curr_seq that are > next_seq start. If that count is
+            # less than the next seq len, then we can drop those and append the next seq to remaining curr seq
+            # Otherwise we drop the next seq altogether
+            overlap_next = 0
+            first_inx = -1
+            for inx, item in enumerate(curr_seq):
+                if item > next_seq[0]:
+                    overlap_next += 1
+                    # remember this inx
+                    if first_inx == -1:
+                        first_inx = inx
+            if overlap_next < next_seq_len:
+                # drop the overlap and attach next seq to curr seq
+                drop_size += overlap_next
+                return_seq = curr_seq[0: first_inx] + next_seq
+            else:
+                # just drop the next seq
+                drop_size += next_seq_len
+                return_seq = curr_seq
+    else:
+        # cases 4 thru 6 - next_end > curr_end
+        if next_seq[0] <= curr_seq[0]:
+            # -------------------------------------------------------------------
+            # case 6 - next sequence completely spans curr sequence (i.e., curr sequence is in the middle of next seq)
+            # -------------------------------------------------------------------
+            # So the curr seq is entirely within next sequence.
+            # Count the number of elements in next_seq that are < curr_seq end. If that count is
+            # less than the curr seq len, then we can drop those and append the remaining next seq to curr seq
+            # Otherwise we drop the curr seq altogether
+            overlap_next = 0
+            for inx, item in enumerate(next_seq):
+                if item < curr_seq[-1]:
+                    overlap_next += 1
+                else:
+                    break
+            if overlap_next < curr_seq_len:
+                # drop the overlap and attach remaining next seq to curr seq
+                drop_size += overlap_next
+                return_seq = curr_seq + next_seq[overlap_next:]
+            else:
+                # just drop the curr seq
+                drop_size += curr_seq_len
+                return_seq = next_seq
+
+        elif next_seq[0] < curr_seq[-1]:
+            # -------------------------------------------------------------------
+            # case 4 - next sequence start is in the middle of curr, but its end is right of curr
+            # -------------------------------------------------------------------
+            # next start is in between curr start and curr end. And next end > curr end.
+            # There is an overlap between the sequences. Now we need to decide
+            # which overlap is to be kept (from the curr seq or next seq?)
+            # Count the number of elements that fall between next_start and curr_end
+            overlap_next = 0
+            for inx, item in enumerate(next_seq):
+                if item <= curr_seq[-1]:
+                    overlap_next += 1
+                else:
+                    break
+            overlap_curr = curr_seq_len
+            for inx, item in enumerate(curr_seq):
+                if item < next_seq[0]:
+                    overlap_curr -= 1
+                else:
+                    break
+            if overlap_curr > overlap_next:
+                # drop the overlapped elements from next
+                drop_size += overlap_next
+                return_seq = curr_seq + next_seq[overlap_next:]
+            else:
+                # drop the overlapped elements from curr and merge the sequences
+                drop_size += overlap_curr
+                return_seq = curr_seq[0:overlap_curr] + next_seq
+
+        else:
+            # -------------------------------------------------------------------
+            # case 5 - next sequence is completely on the right of curr
+            # -------------------------------------------------------------------
+            # This case is not possible. The reason is the two consecutive sequence would have been merged otherwise
+            pass
+
+    # print("process_two_sequences: drop size = %d. return_seq = %r" % (drop_size, return_seq))
+    return drop_size, return_seq
+
+
 def drop_to_get_ascending(nums: list):
     """
     You are given an array containing integers
@@ -544,6 +697,7 @@ def drop_to_get_ascending(nums: list):
     """
     if nums == None or len(nums) == 0:
         return 0
+    print("Nums = %r" % nums)
 
     # get all the ascending sequences
     sequences = []
@@ -563,76 +717,18 @@ def drop_to_get_ascending(nums: list):
 
     num_sequences = len(sequences)
     if num_sequences == 1:
-        return 0
+        return 0, nums
 
     result = 0
     # let's take each consecutive pair and compare the sequences
     curr_seq = sequences[0]
     for i in range(1, len(sequences)):
         next_seq = sequences[i]
-        curr_seq_len = len(curr_seq)
-        next_seq_len = len(next_seq)
+        drop_size, return_seq = process_two_sequences(curr_seq, next_seq)
+        result += drop_size
+        curr_seq = return_seq
 
-        # compare the start and end of the two sequences
-        if next_seq[0] <= curr_seq[0]:
-            # next start is <= curr start
-            if next_seq[-1] <= curr_seq[0]:
-                # next end is <= curr start
-                # check the lengths of curr and next seq. Keep the bigger one
-                if next_seq_len > curr_seq_len:
-                    curr_seq = next_seq
-                    result += curr_seq_len
-                else:
-                    result += next_seq_len
-            elif next_seq[-1] <= curr_seq[-1]:
-                # next end is > curr start but <= curr end. There is overlap between the sequences
-                # The best we can do is to pick the larger sequence
-                if next_seq_len > curr_seq_len:
-                    curr_seq = next_seq
-                    result += curr_seq_len
-                else:
-                    result += next_seq_len
-            else:
-                # next end is greater than curr end. So the next sequence is bigger than the curr sequence
-                curr_seq = next_seq
-                result += curr_seq_len
-                pass
-        else:
-            # next start is > curr start but < curr end
-            if next_seq[-1] <= curr_seq[-1]:
-                # next end <= curr end. So the next seq is entirely within current sequence.
-                # Count the number of elements in curr_seq that are > next_seq start. If that count is
-                # less than the next seq len, then we can drop those and append the next seq to remaining curr seq
-                overlap = 0
-                first_inx = -1
-                for inx, item in enumerate(curr_seq):
-                    if item > next_seq[0]:
-                        overlap += 1
-                        # remember his inx
-                        if first_inx == -1:
-                            first_inx = inx
-                if overlap < next_seq_len:
-                    # drop the overlap and attach next seq to curr seq
-                    result += overlap
-                    curr_seq = curr_seq[0: first_inx] + next_seq
-                else:
-                    # just drop the next seq
-                    result += next_seq_len
-            else:
-                # next end > curr end.  There is overlap between the sequences
-                # Count the number of elements that fall between next_start and curr_end
-                overlap = 0
-                for inx, item in enumerate(next_seq):
-                    if item <= curr_seq[-1]:
-                        overlap += 1
-                    else:
-                        break
-                # drop the overlapped elements
-                result += overlap
-                # expand the current sequence
-                curr_seq += next_seq[inx:]
-
-    return result
+    return result, curr_seq
 
 
 def test_drop_to_get_ascending():
@@ -641,6 +737,7 @@ def test_drop_to_get_ascending():
          ([45, 30, 32, 46, 47, 33], 2),                  # drop 45, 33
          ([45, 30, 32, 46, 47, 33, 34, 35], 3),          # drop 45, 46, 47
          ([45, 30, 32, 46, 47, 33, 48, 49], 2),          # drop 45, 33
+         ([45, 30, 32, 46, 47, 33, 34, 35, 36, 48, 34], 4),          # drop 45, 46, 47, 34
          ([45, 30, 32, 46, 47, 33, 48, 34], 3),          # drop 45, 33, 34
          ([45, 46, 47, 48, 49, 50], 0),                  # drop nothing
          ([50, 49, 48, 47, 46, 45], 5),                  # drop everything but one
@@ -651,12 +748,13 @@ def test_drop_to_get_ascending():
     err_count = 0
     start_time = time.clock()
     for t in test_cases:
-        m = drop_to_get_ascending(t[0])
+        m, final_seq = drop_to_get_ascending(t[0])
         if m != t[1]:
             err_count += 1
-            print("::::ERROR:::: nums = %r. Returned = %d. Expected = %d" % (t[0], m, t[1]))
+            print("::::ERROR:::: nums = %r. Returned = %d. Expected = %d. Final seq = %r" % (t[0], m, t[1], final_seq))
         else:
-            print("nums = %r. Returned = %d" % (t[0], m))
+            print("nums = %r. Returned = %d. Final Seq = %r" % (t[0], m, final_seq))
+        print("-------------")
 
     if err_count == 0:
         print("ALL TESTS PASSED")
