@@ -1,4 +1,5 @@
 import sys
+import time
 from typing import List
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -529,7 +530,7 @@ def test_right_triangle():
 #             D R O P   M I N I M U M   F O R   A S C E N D I N G
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
-def drop_to_get_ascending (nums: list):
+def drop_to_get_ascending(nums: list):
     """
     You are given an array containing integers
     Each array element can be between -100 to 100, both inclusive
@@ -541,6 +542,128 @@ def drop_to_get_ascending (nums: list):
     :param nums:
     :return: n
     """
+    if nums == None or len(nums) == 0:
+        return 0
+
+    # get all the ascending sequences
+    sequences = []
+    i = 0
+    while i < len(nums):
+        curr_seq = []
+        seq_len = 0
+        last_item = -sys.maxsize
+        for n in nums[i:]:
+            if n < last_item:
+                break
+            curr_seq.append(n)
+            last_item = n
+            seq_len += 1
+        sequences.append(curr_seq)
+        i += seq_len
+
+    num_sequences = len(sequences)
+    if num_sequences == 1:
+        return 0
+
+    result = 0
+    # let's take each consecutive pair and compare the sequences
+    curr_seq = sequences[0]
+    for i in range(1, len(sequences)):
+        next_seq = sequences[i]
+        curr_seq_len = len(curr_seq)
+        next_seq_len = len(next_seq)
+
+        # compare the start and end of the two sequences
+        if next_seq[0] <= curr_seq[0]:
+            # next start is <= curr start
+            if next_seq[-1] <= curr_seq[0]:
+                # next end is <= curr start
+                # check the lengths of curr and next seq. Keep the bigger one
+                if next_seq_len > curr_seq_len:
+                    curr_seq = next_seq
+                    result += curr_seq_len
+                else:
+                    result += next_seq_len
+            elif next_seq[-1] <= curr_seq[-1]:
+                # next end is > curr start but <= curr end. There is overlap between the sequences
+                # The best we can do is to pick the larger sequence
+                if next_seq_len > curr_seq_len:
+                    curr_seq = next_seq
+                    result += curr_seq_len
+                else:
+                    result += next_seq_len
+            else:
+                # next end is greater than curr end. So the next sequence is bigger than the curr sequence
+                curr_seq = next_seq
+                result += curr_seq_len
+                pass
+        else:
+            # next start is > curr start but < curr end
+            if next_seq[-1] <= curr_seq[-1]:
+                # next end <= curr end. So the next seq is entirely within current sequence.
+                # Count the number of elements in curr_seq that are > next_seq start. If that count is
+                # less than the next seq len, then we can drop those and append the next seq to remaining curr seq
+                overlap = 0
+                first_inx = -1
+                for inx, item in enumerate(curr_seq):
+                    if item > next_seq[0]:
+                        overlap += 1
+                        # remember his inx
+                        if first_inx == -1:
+                            first_inx = inx
+                if overlap < next_seq_len:
+                    # drop the overlap and attach next seq to curr seq
+                    result += overlap
+                    curr_seq = curr_seq[0: first_inx] + next_seq
+                else:
+                    # just drop the next seq
+                    result += next_seq_len
+            else:
+                # next end > curr end.  There is overlap between the sequences
+                # Count the number of elements that fall between next_start and curr_end
+                overlap = 0
+                for inx, item in enumerate(next_seq):
+                    if item <= curr_seq[-1]:
+                        overlap += 1
+                    else:
+                        break
+                # drop the overlapped elements
+                result += overlap
+                # expand the current sequence
+                curr_seq += next_seq[inx:]
+
+    return result
+
+
+def test_drop_to_get_ascending():
+    test_cases = \
+        [([45, 30, 32, 46, 47], 1),                      # drop 45
+         ([45, 30, 32, 46, 47, 33], 2),                  # drop 45, 33
+         ([45, 30, 32, 46, 47, 33, 34, 35], 3),          # drop 45, 46, 47
+         ([45, 30, 32, 46, 47, 33, 48, 49], 2),          # drop 45, 33
+         ([45, 30, 32, 46, 47, 33, 48, 34], 3),          # drop 45, 33, 34
+         ([45, 46, 47, 48, 49, 50], 0),                  # drop nothing
+         ([50, 49, 48, 47, 46, 45], 5),                  # drop everything but one
+         ([50, 49, 48, 47, 46, 45, 46, 47, 48], 5),      # drop 50, 49, 48, 47, 46
+         ([45], 0)                                       # drop nothing
+        ]
+
+    err_count = 0
+    start_time = time.clock()
+    for t in test_cases:
+        m = drop_to_get_ascending(t[0])
+        if m != t[1]:
+            err_count += 1
+            print("::::ERROR:::: nums = %r. Returned = %d. Expected = %d" % (t[0], m, t[1]))
+        else:
+            print("nums = %r. Returned = %d" % (t[0], m))
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
+    end_time = time.clock()
+    print("Elapsed Time = %.6f millisecs" % (1000 * (end_time - start_time)))
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #             Leetcode 128. Longest Consecutive Sequence
