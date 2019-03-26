@@ -132,6 +132,29 @@ def shortestPalindrome(s: str) -> str:
 
     return ""
 
+def shortestPalindrome_2(s: str) -> str:
+    """
+    Given a string s, you are allowed to convert it to a palindrome by adding characters in front of it.
+    Find and return the shortest palindrome you can find by performing this transformation.
+    Example 1:
+        Input: "aacecaaa"
+        Output: "aaacecaaa"
+    Example 2:
+        Input: "abcd"
+        Output: "dcbabcd"
+    :param s:
+    :return:
+    """
+
+    if s is None or len(s) == 0:
+        return ""
+
+    # find the longest palindrome in the given string first
+    for i in range(len(s)-1, -1, -1):
+        if s[:i+1] == s[i::-1]:
+            break
+    return s[:i:-1] + s
+
 def test_shortestPalindrome():
     test_cases = \
         [("aacecaaa", "aaacecaaa"),
