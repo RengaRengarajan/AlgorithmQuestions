@@ -1,5 +1,6 @@
 import sys
 import time
+from collections import deque
 from typing import List
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -990,3 +991,102 @@ def test_findSubstring():
         print("ALL TESTS PASSED")
     else:
         print("%d tests FAILED" % err_count)
+
+
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+#            Expand String
+# * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+def expand_str_expr(inp: str) -> str:
+    """
+    Expand given input string by repeating substrings
+    as per the specifications. See examples below.
+    Examples:
+    # "2a" -> aa
+    # "a2b" -> abb
+    # "a2b3(cd)" -> abbcdcdcd
+    # "ye2(3(2s))" -> yessssssssssss
+    """
+
+    if inp is None or len(inp) == 0:
+        return ""
+
+    my_stack = deque()
+
+    for c in inp:
+        if c == '(':
+            my_stack.append(c)
+        elif c == ')':
+            # pop the top
+            top_1 = my_stack.pop()
+            top_2 = my_stack.pop()
+            while top_2 != '(':
+                top_1 = top_2 + top_1
+                top_2 = my_stack.pop()
+
+            if len(my_stack) == 0:
+                my_stack.append(top_1)
+            else:
+                top_2 = my_stack.pop()
+                if type(top_2) == int:
+                    my_stack.append(top_1 * top_2)
+                elif top_2 == '(':
+                    my_stack.append(top_2)
+                    my_stack.append(top_1)
+                else:
+                    my_stack.append(top_2 + top_1)
+        elif '0' <= c <= '9':
+            if len(my_stack) > 0 and type(my_stack[-1]) == int:
+                top_1 = my_stack.pop()
+                my_stack.append(top_1 * 10 + int(c))
+            else:
+                    my_stack.append(int(c))
+        else:
+            # a simple char
+            if len(my_stack) == 0:
+                my_stack.append(c)
+            else:
+                top_1 = my_stack.pop()
+                if type(top_1) == int:
+                    my_stack.append(c * top_1)
+                elif top_1 == '(':
+                    my_stack.append(top_1)
+                    my_stack.append(c)
+                else:
+                    my_stack.append(top_1 + c)
+
+    # now pop all items in my_stack and concatenate
+    result = ""
+    while len(my_stack) > 0:
+        result += my_stack.popleft()
+
+    return result
+
+def test_expand_str_expr():
+    test_cases = \
+        [ ("2a", "aa"),
+          ("a2b", "abb"),
+          ("a2b3(cd)", "abbcdcdcd"),
+          ("ye2(3(2s))", "yessssssssssss"),
+          ("(ab)", "ab"),
+          ("((a2c))", "acc"),
+          ("3(2(2(a)))", "aaaaaaaaaaaa")
+        ]
+
+    err_count = 0
+    start_time = time.clock()
+    for t in test_cases:
+        m = expand_str_expr(t[0])
+        if m != t[1]:
+            err_count += 1
+            print("::::ERROR:::: s = %s. Returned = %s. Expected = %s." % (t[0], m, t[1]))
+        else:
+            print("s = %s. Returned = %s" % (t[0], m))
+        print("-------------")
+
+    if err_count == 0:
+        print("ALL TESTS PASSED")
+    else:
+        print("%d tests FAILED" % err_count)
+    end_time = time.clock()
+    print("Elapsed Time = %.6f millisecs" % (1000 * (end_time - start_time)))
+
