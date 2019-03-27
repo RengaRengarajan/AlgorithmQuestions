@@ -1011,12 +1011,18 @@ def expand_str_expr(inp: str) -> str:
         return ""
 
     my_stack = deque()
+    open_left_paren_count = 0
 
     for c in inp:
         if c == '(':
             my_stack.append(c)
+            open_left_paren_count += 1
         elif c == ')':
-            # pop the top
+            # check if corresponding left paren seen
+            if open_left_paren_count <= 0:
+                raise ValueError("Too many right parenthesis")
+            else:
+                open_left_paren_count -= 1
             top_1 = ''
             while my_stack[-1] != '(':
                 top_1 = my_stack.pop() + top_1
@@ -1053,6 +1059,10 @@ def expand_str_expr(inp: str) -> str:
                     my_stack.append(c)
                 else:
                     my_stack.append(top_1 + c)
+
+    # check if all parenthesis are closed
+    if open_left_paren_count > 0:
+        raise ValueError("Too many left parenthesis")
 
     # now pop all items in my_stack and concatenate
     result = ""
