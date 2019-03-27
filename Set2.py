@@ -1017,11 +1017,11 @@ def expand_str_expr(inp: str) -> str:
             my_stack.append(c)
         elif c == ')':
             # pop the top
-            top_1 = my_stack.pop()
-            top_2 = my_stack.pop()
-            while top_2 != '(':
-                top_1 = top_2 + top_1
-                top_2 = my_stack.pop()
+            top_1 = ''
+            while my_stack[-1] != '(':
+                top_1 = my_stack.pop() + top_1
+            # pop off the '('
+            my_stack.pop()
 
             if len(my_stack) == 0:
                 my_stack.append(top_1)
@@ -1063,14 +1063,21 @@ def expand_str_expr(inp: str) -> str:
 
 def test_expand_str_expr():
     test_cases = \
-        [ ("2a", "aa"),
-          ("a2b", "abb"),
-          ("a2b3(cd)", "abbcdcdcd"),
-          ("ye2(3(2s))", "yessssssssssss"),
-          ("(ab)", "ab"),
-          ("((a2c))", "acc"),
-          ("3(2(2(a)))", "aaaaaaaaaaaa")
-        ]
+        [("2a", "aa"),
+         ("a2b", "abb"),
+         ("a2b3(cd)", "abbcdcdcd"),
+         ("ye2(3(2s))", "yessssssssssss"),
+         ("(ab)", "ab"),
+         ("((a2c))", "acc"),
+         ("3(2(2(a)))", "aaaaaaaaaaaa"),
+         ("a10Xb", "aXXXXXXXXXXb"),
+         ("a0bc", "ac"),
+         ("a(b)", "ab"),
+         ("abcd", "abcd"),
+         ("(a(b(c(d))))", "abcd"),
+         ("((()))", ""),
+         ("a2()b", "ab")
+         ]
 
     err_count = 0
     start_time = time.clock()
