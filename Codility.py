@@ -262,12 +262,11 @@ def NumberOfDiscIntersections(A: List[int]) -> int:
         while cm_inx < N and x >= c_minus_r[cm_inx]:
             cm_inx += 1
         total_intersection += cm_inx
-        # if the cm_inx had reached end of array, we might miss out the last element. Take care of this
-        if cm_inx < N and x >= c_minus_r[cm_inx]:
-            total_intersection += 1
 
-    # now subtract the double counting for i,j and j,i
-    # the num of such double count will be n*(N+1)/2
+    # Each circle should only be compared with the later circles. But in the above logic, we computed all
+    # permutations. We need to compensate for this over counting. There is n over-counting for the  first circle,
+    # n-1 for the second circle and so on. So we need to subtract N + N-1 + N-2 + ... + 1. Or N*(N+1)/2
+
     total_intersection -= int((N * (N + 1)) / 2)
     if total_intersection > 10000000:
         total_intersection = -1
@@ -299,6 +298,6 @@ def test_NumberOfDiscIntersections():
 
 
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-#             Codility: NumberOfDiscIntersections
+#             Codility:
 # * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
